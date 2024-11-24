@@ -1,0 +1,5 @@
+{
+  "name": "Default",
+  "type": "gpt",
+  "model": "gpt-4o-mini"
+}
