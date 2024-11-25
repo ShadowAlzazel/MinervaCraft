@@ -19,10 +19,10 @@ class GPT:
             tools=kwargs["tools"], # Get From skills
             model=kwargs["model"],
         )
-        # Conversations via threads
         
     
-    async def send_request(self, messages: list[dict]):
+    async def get_completion(self, messages: list[dict]):
+        # Conversations via threads
         #response = await self.client.beta.threads.create(
         #    
         #)
@@ -31,3 +31,8 @@ class GPT:
             messages=messages
         )
         return completion
+    
+    
+    async def get_message(self, messages: list[dict]):
+        completion = await self.get_completion(messages)
+        return completion.choices[0].message

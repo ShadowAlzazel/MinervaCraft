@@ -30,31 +30,28 @@ def get_profiles() -> list[dict]:
             obj = json.loads(f.read())
             profiles.append(obj)
     return profiles
+
+
+async def agent_task(agent: Agent):
+    # Start the bot
+    agent.start(**SETTINGS["mineflayer_args"])
+    await agent.run()
     
     
-async def start_agents(agents: list[Agent]):
-    # Start the agents
-    for agent in agents:
-        agent.start(**SETTINGS["mineflayer_args"]) # Unpack as kwargs
-    # Welcome message
-    await agent.send_chat("ShadowAlzazel", "Hello! Welcome to the server")
-    
-    
-async def start() -> None:
+def runner() -> None:
+    print("Getting Profiles")
     profiles = get_profiles()
     print(f'Loading these profiles ${profiles}')
+    # Init all agents
     agents: list[Agent] = [Agent(**a) for a in profiles]
-    await start_agents(agents)
-    
-    
-def runner():
     loop = asyncio.new_event_loop()
-    loop.create_task(start())
+    for agent in agents:
+        loop.create_task(agent_task(agent))
     loop.run_forever()
+    
 
 def main():
     try:
-        #asyncio.run(runner())
         runner()
     except KeyboardInterrupt:
         print("Terminating...")
