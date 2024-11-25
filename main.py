@@ -14,7 +14,7 @@ pathfinder = require('mineflayer-pathfinder')
 from src.agent.agent import Agent
 
 
-def getProfiles() -> list[dict]:
+def get_profiles() -> list[dict]:
     default = "profiles/default.json"
     profiles = []
     for profile in SETTINGS["profiles"]:
@@ -32,17 +32,33 @@ def getProfiles() -> list[dict]:
     return profiles
     
     
-def main():
-    profiles = getProfiles()
-    print(f'Loading these profiles ${profiles}')
-    agents: list[Agent] = [Agent(a["name"]) for a in profiles]
-    # Run
+async def start_agents(agents: list[Agent]):
+    # Start the agents
     for agent in agents:
-        agent.start(**SETTINGS["kwargs"]) # Unpack as kwargs
+        agent.start(**SETTINGS["mineflayer_args"]) # Unpack as kwargs
+    # Welcome message
+    await agent.send_chat("ShadowAlzazel", "Hello! Welcome to the server")
+    
+    
+async def start() -> None:
+    profiles = get_profiles()
+    print(f'Loading these profiles ${profiles}')
+    agents: list[Agent] = [Agent(**a) for a in profiles]
+    await start_agents(agents)
+    
+    
+def runner():
+    loop = asyncio.new_event_loop()
+    loop.create_task(start())
+    loop.run_forever()
 
-    active = True
-    while active:
-        pass
+def main():
+    try:
+        #asyncio.run(runner())
+        runner()
+    except KeyboardInterrupt:
+        print("Terminating...")
+        return
 
 # Run
 if __name__ == "__main__":
