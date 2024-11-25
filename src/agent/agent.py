@@ -3,6 +3,7 @@ from javascript import require, On, Once, AsyncTask
 
 # Modules
 from ..models import model_manager
+from ..utils.wrappers import RunAsync
 
 mineflayer = require('mineflayer')
 pathfinder = require('mineflayer-pathfinder')
@@ -34,6 +35,7 @@ class Agent():
         
         
     # Get Raw Response
+    @RunAsync
     async def request_response(self, user: str, message: str, role: str="user"):
         new_message = {
             "role": role,
@@ -43,7 +45,8 @@ class Agent():
         print(response)
         
         
-    # Chat (meant to be awaited)
+    # Chat 
+    @RunAsync
     async def send_chat(self, user: str, message: str, role: str="user"):
         new_message = {
             "role": role,
@@ -73,6 +76,7 @@ class Agent():
             if message[0] == "/":
                 return
             
+            #print(f'{username} said: {message}')
             match message:
                 case "Hello":
                     bot.chat("Hello World!")
@@ -90,21 +94,15 @@ class Agent():
                     bot.pathfinder.setGoal(pathfinder.goals.GoalNear(pos.x, pos.y, pos.z, 1))
                     
                 case _:
-                    #bot.chat("TODO")    
-                    asyncio.run(self.send_chat(username, message))
-
+                    self.send_chat(username, message)
+                    pass
         
         # On Spawn
         @On(bot, "spawn")
         def spawn(this):
             nonlocal self
-            asyncio.run(self.request_response("system", "You have logged into the server!", "system"))
+            self.request_response("system", "You have logged into the server!", "system")
             print(f'The Agent {self.name} has Spawned!')
             bot.chat("Hi! I have arrived.")
-            #await self.request_response("system", "You have logged into the server!", "system")
 
-        # Test
-        async def test():
-            print("TEST ASYNC")
-            
-        await test()
+        

@@ -36,7 +36,7 @@ async def agent_task(agent: Agent):
     # Start the bot
     agent.start(**SETTINGS["mineflayer_args"])
     await agent.run()
-    
+
     
 def runner() -> None:
     print("Getting Profiles")
