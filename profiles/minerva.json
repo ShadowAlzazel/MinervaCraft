@@ -1,5 +1,20 @@
 {
   "name": "Minerva",
-  "type": "gpt",
-  "model": "gpt-4o-mini"
+  "api": "gpt",
+  "model": "gpt-4o-mini",
+
+  "conversing": "You are a playful Minecraft bot named $NAME",
+
+  "modes": {
+    "idle": true
+  },
+
+  "skills": [
+    
+  ],
+
+  "npc": {
+
+  }
+
 }
