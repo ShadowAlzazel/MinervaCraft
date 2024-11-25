@@ -30,6 +30,7 @@ class GPT:
             model=self.model,
             messages=messages
         )
+        #print(f'Completion Choice: {completion.choices[0].message}')
         return completion
     
     

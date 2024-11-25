@@ -55,8 +55,6 @@ class Agent():
         chat_message = await self.model.get_message(messages=[new_message])
         self.bot.chat(chat_message.content)
         
-    # TODO
-    # Create asyncio.run WRAPPER for functions    
         
     # Run this method LAST
     async def run(self):
