@@ -1,5 +1,6 @@
 import asyncio
 
+from javascript import require, On, Once
 
 def RunAsync(fun):
     def wrapper(*args, **kwargs):

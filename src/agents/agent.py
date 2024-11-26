@@ -1,8 +1,13 @@
 import asyncio
+import os 
+import json
+
 from javascript import require, On, Once, AsyncTask
 
-# Modules
+# Relative
 from ..models import model_manager
+from ..agents.memory_controller import MemoryController
+from .library import skills, world
 from ..utils.wrappers import RunAsync
 
 mineflayer = require('mineflayer')
@@ -12,15 +17,32 @@ class Agent():
 
     # Initialize API and model
     def __init__(self, **profile):
-        self.name = profile["name"]
-        self.api = profile["api"]
-        # Get then init new model
-        new_model = model_manager.find_model(api=profile["api"], model=profile["model"])
-        model_args = model_manager.get_model_args(**profile)
-        self.model = new_model(**model_args)
-        # Success
-        print(f'Initialized Agent: [{self.name}] using: [{profile["model"]}]')
-
+        try:
+            # Start
+            self.name = profile["name"]
+            # Create bot dir 
+            root = f'bots/{self.name}'
+            if not os.path.exists(root):
+                os.makedirs(root)
+            # Profiles
+            last_profile = {}
+            profile_path = f'{root}/last_profile.json'
+            if os.path.exists(profile_path):
+                with open(profile_path, "r") as f:
+                    last_profile = json.loads(f.read()) 
+            # Create new model api from profile
+            self.api = profile["api"]
+            new_model = model_manager.find_model(api=profile["api"], model=profile["model"])
+            model_args = model_manager.get_model_args(**profile)
+            self.model = new_model(**model_args)
+            # Create memory controller
+            self.memory = MemoryController(self)
+            # Success
+            print(f'Initialized Agent Model: [{self.name}] using: [{profile["model"]}]')
+        # Error
+        except Exception as error:
+            print(f'Failed to initialize agent: {error}')
+            
 
     # Start Bot in Minecraft
     def start(self, **kwargs):
@@ -61,8 +83,6 @@ class Agent():
         bot = self.bot
         # Plugins
         bot.loadPlugin(pathfinder.pathfinder)
-        movements = pathfinder.Movements(bot)
-
         
         # Basic Chat Handler
         @On(bot, "chat")
@@ -78,19 +98,11 @@ class Agent():
             match message:
                 case "Hello":
                     bot.chat("Hello World!")
-                case "Follow" | "follow":
-                    player = bot.players[username]
-                    nearby = bot.entities
-                    print(player) 
-                    target = player.entity
-                    print(target)
-                    if not target:
-                        return
-                    pos = target.position
-                    print(pos)
-                    bot.pathfinder.setMovements(movements)
-                    bot.pathfinder.setGoal(pathfinder.goals.GoalNear(pos.x, pos.y, pos.z, 1))
-                    
+                case "come" | "Come":
+                    skills.go_to_player(bot, username, 20.0)
+                case "near":
+                    world.get_nearby_entities(bot, entity_types=["animal"])
+                    pass
                 case _:
                     self.send_chat(username, message)
                     pass

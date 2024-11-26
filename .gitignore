@@ -168,3 +168,8 @@ cython_debug/
 # Bot related 
 bots/**/
 keys.json
+
+# Super secret AGI
+himiko.py
+himiko.json
+himiko/

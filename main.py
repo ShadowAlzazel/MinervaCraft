@@ -3,7 +3,7 @@ import os
 import json
 import asyncio
 
-from javascript import require, On
+from javascript import require, On, Once
 
 # Main 
 from settings import SETTINGS
@@ -11,7 +11,7 @@ mineflayer = require('mineflayer')
 pathfinder = require('mineflayer-pathfinder')
 
 # Modules
-from src.agent.agent import Agent
+from src.agents.agent import Agent
 
 
 def get_profiles() -> list[dict]:
