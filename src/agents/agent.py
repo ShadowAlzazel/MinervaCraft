@@ -6,8 +6,10 @@ from javascript import require, On, Once, AsyncTask
 
 # Relative
 from ..models import model_manager
-from ..agents.memory_controller import MemoryController
+from . import memory_controller
+from . import action_manager
 from .library import skills, world
+from .commands import actions
 from ..utils.wrappers import RunAsync
 
 mineflayer = require('mineflayer')
@@ -29,14 +31,18 @@ class Agent():
             profile_path = f'{root}/last_profile.json'
             if os.path.exists(profile_path):
                 with open(profile_path, "r") as f:
-                    last_profile = json.loads(f.read()) 
-            # Create new model api from profile
+                    last_profile = json.loads(f.read())   
+            # Actions
+            self.action_manager = action_manager.ActionManager(self) 
+            # Start model
             self.api = profile["api"]
             new_model = model_manager.find_model(api=profile["api"], model=profile["model"])
             model_args = model_manager.get_model_args(**profile)
+            model_args["commands"] = self.action_manager.action_list
             self.model = new_model(**model_args)
             # Create memory controller
-            self.memory = MemoryController(self)
+            self.memory = memory_controller.MemoryController(self) 
+            # Create new model api from profile
             # Success
             print(f'Initialized Agent Model: [{self.name}] using: [{profile["model"]}]')
         # Error
@@ -54,33 +60,34 @@ class Agent():
             "username": self.name
         })
         self.bot = bot
-        
-        
-    # Get Raw Response
+        print(f'{self.name} has logged on to Minecraft!')
+
+
+    # Prompt
     @RunAsync
-    async def request_response(self, user: str, message: str, role: str="user"):
-        new_message = {
-            "role": role,
-            "content": f'{user}: {message}'
-        }
-        response = await self.model.get_completion(messages=[new_message])
-        print(response)
-        
-        
-    # Chat 
-    @RunAsync
-    async def send_chat(self, user: str, message: str, role: str="user"):
-        new_message = {
-            "role": role,
-            "content": f'{user}: {message}'
-        }
-        chat_message = await self.model.get_message(messages=[new_message])
-        self.bot.chat(chat_message.content)
+    async def prompt_chat(self, user: str, message: str):
+        response = await self.model.send_prompt(f'{user}: {message}')
+        content = response.content
+        if content:
+            self.bot.chat(content)
+        # TEMP
+        # CREATE MAIN CHECKER FOR TOOL COOLS LATER
+        if response.tool_calls:
+            tool_call = response.tool_calls[0]
+            #tool_obj = json.loads(tool_call.function)
+            func_name = tool_call.function.name
+            fkwargs = json.loads(tool_call.function.arguments)
+            await self.action_manager.call_action(func_name, **fkwargs)
+        # TODO
+        # request from INTERNET
         
         
     # Run this method LAST
     async def run(self):
         bot = self.bot
+        # Loading instructions
+        await self.model.send_request(self.model.instructions, "system")
+        
         # Plugins
         bot.loadPlugin(pathfinder.pathfinder)
         
@@ -94,17 +101,19 @@ class Agent():
             if message[0] == "/":
                 return
             
-            #print(f'{username} said: {message}')
+            print(f'{username} said: {message}')
             match message:
                 case "Hello":
                     bot.chat("Hello World!")
                 case "come" | "Come":
                     skills.go_to_player(bot, username, 20.0)
+                case "follow" | "Follow":
+                    skills.follow_player(bot, username, 20.0)
                 case "near":
-                    world.get_nearby_entities(bot, entity_types=["animal"])
-                    pass
+                    nearby = world.get_nearby_entities(bot, entity_types=["animal"])
+                    print(nearby)
                 case _:
-                    self.send_chat(username, message)
+                    self.prompt_chat(username, message)
                     pass
         
         # On Spawn

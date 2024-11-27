@@ -1,21 +1,5 @@
 
 
+# Create actions in py form
 
-actions_list = [
-    {
-        "name": "go_to_player",
-        "description": "Go to the given player.",
-        "params": {
-            "player_name": {
-                "type": "string",
-                "description": "The name of the player to go to."
-            },
-            "closeness": {
-                "type": "float",
-                "description": "How close to get to the player."
-            }
-        }
-    
-    }
-    
-]
+# And have each model re format them to their type

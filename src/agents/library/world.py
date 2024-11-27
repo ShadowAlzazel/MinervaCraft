@@ -8,6 +8,7 @@ from ...utils.wrappers import RunAsync
 def get_nearby_entities(
     bot, 
     entity_types: list=["animal"],
+    entity_names: list=["chicken"],
     max_distance: float=16): 
     # Set a distance
     if not max_distance:
@@ -28,7 +29,8 @@ def get_nearby_entities(
         distance = entity.position.distanceTo(position)
         if distance > max_distance:
             continue
-        if entity.type in entity_types:
+        # Either can be true
+        if entity.type in entity_types or entity.name in entity_names:
             nearby.append({"entity": entity, "distance": distance})
      
     nearby.sort(key=lambda entry: entry["distance"])
@@ -41,3 +43,5 @@ def get_nearest_blocks(
     distance,
     count):
     pass
+
+
