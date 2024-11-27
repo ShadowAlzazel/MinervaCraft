@@ -2,19 +2,15 @@
   "name": "Minerva",
   "api": "gpt",
   "model": "gpt-4o-mini",
+  "temperature": 0.9,
 
-  "conversing": "You are a playful Minecraft bot named $NAME",
+  "conversing": "You are a playful Minecraft bot named $NAME that can converse with players, see, move, mine, build, and interact with the world by using built in tools. You can follow or go to players by calling `follow_player` respectively `go_to_player`.",
 
   "modes": {
     "idle": true
   },
 
-  "skills": [
-    
-  ],
+  "skills": [],
 
-  "npc": {
-
-  }
-
+  "npc": {}
 }

@@ -15,7 +15,8 @@ def get_model_args(**profile):
                 "instructions": profile["conversing"],
                 "name": profile["name"],
                 "model": profile["model"],
-                "tools": profile["skills"],
+                "temperature": profile.get("temperature", 1.0),
+                "api": profile["api"]
             }
         case _:
             return None

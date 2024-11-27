@@ -1,0 +1,24 @@
+{
+  "name": "follow_player",
+  "description": "Actively follows the given player.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "player_name": {
+        "type": "string",
+        "description": "The name of the player to follow."
+      },
+      "max_distance": {
+        "type": "number",
+        "description": "How far the player can be."
+      },
+      "closeness": {
+        "type": "number",
+        "description": "How close to stay to the player."
+      }
+    },
+    "required": [
+      "player_name"
+    ]
+  }
+}
