@@ -50,7 +50,7 @@ class Agent():
             
 
     # Start Bot in Minecraft
-    def start(self, **kwargs):
+    def start_bot(self, **kwargs):
         bot = mineflayer.createBot({
             "host": kwargs["host"],
             "port": kwargs["port"],

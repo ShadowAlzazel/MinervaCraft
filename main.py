@@ -12,6 +12,7 @@ pathfinder = require('mineflayer-pathfinder')
 
 # Modules
 from src.agents.agent import Agent
+from src.process import AgentProcess
 
 
 def get_profiles() -> list[dict]:
@@ -31,12 +32,6 @@ def get_profiles() -> list[dict]:
             profiles.append(obj)
     return profiles
 
-
-async def agent_task(agent: Agent):
-    # Start the bot
-    agent.start(**SETTINGS["mineflayer_args"])
-    await agent.run()
-
     
 async def runner() -> None:
     print("Getting Profiles...")
@@ -44,15 +39,16 @@ async def runner() -> None:
     print(f'Fetched agent profiles.')
     # Init all agents
     agents: list[Agent] = [Agent(**a) for a in profiles]
+    processes: list[AgentProcess] = [AgentProcess(a) for a in agents]
     # Start a task for each agent
     #loop = asyncio.new_event_loop()
     #for agent in agents:
     #    loop.create_task(agent_task(agent))
     #loop.run_forever()
     async with asyncio.TaskGroup() as task_group:
-        for agent in agents:
-            task_group.create_task(agent_task(agent))
-    
+        for process in processes:
+            process.start_bot(**SETTINGS["mineflayer_args"])
+            task_group.create_task(process.agent_task())
     
     
 def main():
