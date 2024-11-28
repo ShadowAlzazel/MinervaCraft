@@ -7,18 +7,23 @@ from javascript import require, On, Once, AsyncTask
 from settings import SETTINGS
 
 minecraft_data = require('minecraft-data')
-mineflayer = require('mineflayer')
+mineflayer = require('mineflayer', "latest")
 prismarine_items = require('prismarine-item')
 pathfinder = require('mineflayer-pathfinder')
 pvp = require('mineflayer-pvp')
 collect_block = require('mineflayer-collectblock')
 auto_eat = require('mineflayer-auto-eat')
 armor_manager = require('mineflayer-armor-manager')
+tool_plugin = require('mineflayer-tool')
+
 
 MC_VERSION = SETTINGS["start_args"]["version"]
 mcdata = minecraft_data(MC_VERSION)
 
-# Class
+# This is for mineflayer-data 
+
+# Classes
+Vec3 = require("vec3").Vec3
 Item = prismarine_items(MC_VERSION)
 
 # Methods

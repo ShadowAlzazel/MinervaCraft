@@ -2,7 +2,7 @@ import asyncio
 
 from javascript import require, On, Once
 from src.utils.wrappers import RunAsync
-from src.utils import mcdata as mc
+from src.utils import mf_data as mf
 from . import world
 
 
@@ -36,9 +36,9 @@ async def go_to_player(
     if distance > float(max_distance):
         return False
     # Start movement
-    move = mc.pathfinder.Movements(bot)
+    move = mf.pathfinder.Movements(bot)
     bot.pathfinder.setMovements(move)
-    bot.pathfinder.setGoal(mc.pathfinder.goals.GoalNear(pos.x, pos.y, pos.z, flaot(closeness)))
+    bot.pathfinder.setGoal(mf.pathfinder.goals.GoalNear(pos.x, pos.y, pos.z, flaot(closeness)))
     
     
 async def follow_player(
@@ -72,18 +72,29 @@ async def follow_player(
     if distance > float(max_distance):
         return False
     # Start follow
-    move = mc.pathfinder.Movements(bot)
+    move = mf.pathfinder.Movements(bot)
     bot.pathfinder.setMovements(move)
-    goal = mc.pathfinder.goals.GoalFollow(player.entity, float(closeness))
+    goal = mf.pathfinder.goals.GoalFollow(player.entity, float(closeness))
     bot.pathfinder.setGoal(goal, True)    
     
 
-async def equip_tool(
+@RunAsync
+async def equip_item(
     bot,
-    
-    material: str,
+    item_name: str,
 ):
-    pass
+    # Can not find empty
+    if item_name == "air":
+        return False
+    inventory = bot.inventory.slots
+    item = None
+    for slot in inventory:
+        if slot and slot.name == item_name:
+            item = slot
+            break
+    if not item:
+        return False 
+    bot.equip(item, "hand")
 
 
 @RunAsync
@@ -113,7 +124,7 @@ async def collect_blocks(
     avilable = min(amount, len(nearest_blocks))
     while collected < avilable:
         # Movement
-        movements = mc.pathfinder.Movements(bot)
+        movements = mf.pathfinder.Movements(bot)
         movements.dontMineUnderFallingBlock = False
         safe_to_break = [x for x in nearest_blocks if movements.safeToBreak(x)]
         # Create a sublist to compare
@@ -124,11 +135,15 @@ async def collect_blocks(
         # Tool
         block = safe_to_break[0]
         nearest_blocks.remove(block)
-        print(f'Block {block}')
+        print(f'Block: {block}')
         #print(bot.tool)
-        bot.tool.equipForBlock(block)
         item_id = bot.heldItem 
-        print(f'Item {bot.heldItem}')
+        print(f'Item: {bot.tool.itemInHand()}')
+        #
+        #print(f'Bot: {bot}')
+        equip_options = {"requireHarvest": True}
+        bot.tool.equipForBlock(block, equip_options)
+        
         #bot.equip(item, 'hand')
         # Using block data find `material`
         # Then check inventory for the material

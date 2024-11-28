@@ -5,7 +5,7 @@ import json
 from javascript import require, On, Once, AsyncTask
 
 # Abs
-from src.utils import mcdata as mc
+from src.utils import mf_data as mf
 from src.utils.wrappers import RunAsync
 # Rel
 from . import memory_controller, action_manager, prompters
@@ -51,7 +51,7 @@ class Agent():
 
     # Start Bot in Minecraft
     def start_bot(self, **kwargs):
-        bot = mc.mineflayer.createBot({
+        bot = mf.mineflayer.createBot({
             "host": kwargs["host"],
             "port": kwargs["port"],
             "auth": kwargs["port"],
@@ -60,11 +60,12 @@ class Agent():
         })
         self.bot = bot
         # Plugins
-        self.bot.loadPlugin(mc.pathfinder.pathfinder)
-        self.bot.loadPlugin(mc.pvp.plugin)
-        self.bot.loadPlugin(mc.collect_block.plugin)
-        #self.bot.loadPlugin(mc.auto_eat.plugin)
-        #self.bot.loadPlugin(mc.armor_manager.plugin)
+        self.bot.loadPlugin(mf.pathfinder.pathfinder)
+        self.bot.loadPlugin(mf.pvp.plugin)
+        self.bot.loadPlugin(mf.collect_block.plugin)
+        self.bot.loadPlugin(mf.tool_plugin.plugin)
+        #self.bot.loadPlugin(mf.auto_eat.plugin)
+        #self.bot.loadPlugin(mf.armor_manager.plugin)
         # Logging In
         print(f'{self.name} has logged on to Minecraft!')
 
@@ -123,6 +124,8 @@ class Agent():
                     world.get_nearest_blocks(bot, ["grass_block"])
                 case "mine":
                     skills.collect_blocks(bot, "grass_block")
+                case "equip":
+                    skills.equip_item(bot, "diamond_shovel")
                 case "fight":
                     bot.pvp.attack(player.entity)
                 case "near":

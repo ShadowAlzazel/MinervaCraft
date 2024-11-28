@@ -1,6 +1,6 @@
 import asyncio
 
-from src.utils import mcdata as mc
+from src.utils import mf_data as mf
 
 # entity_types = ["animal, player, hostile"]
 
@@ -75,14 +75,14 @@ def get_nearest_blocks(
     block_ids = []
     # If block_names is not a list, make it a list
     if block_names is None:
-        block_ids = mc.getAllBlockIds(['air'])
+        block_ids = mf.getAllBlockIds(['air'])
     else:
         # Ensure block_names is a list
         if not isinstance(block_names, list):
             block_names = [block_names]
         # Get block IDs from the block types
         for name in block_names:
-            block_ids.append(mc.get_block_id(name))
+            block_ids.append(mf.get_block_id(name))
     # Get the positions of the matching blocks
     positions = bot.findBlocks({
         'matching': block_ids,

@@ -5,9 +5,19 @@ import asyncio
 
 from javascript import require, On, Once
 
+require('minecraft-data')
+require('mineflayer', "latest")
+require('prismarine-item')
+require('mineflayer-pathfinder')
+require('mineflayer-pvp')
+require('mineflayer-collectblock')
+require('mineflayer-auto-eat')
+require('mineflayer-armor-manager')
+require('mineflayer-tool')
+
 # Main 
 from settings import SETTINGS
-from src.utils import mcdata
+from src.utils import mf_data
 from src.agents.agent import Agent
 from src.process import AgentProcess
 
