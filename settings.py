@@ -7,9 +7,9 @@ SETTINGS = {
     },
 
     "profiles": [
-        "minerva",
+        #"minerva",
         #"freya",
-        #"ophelia"
+        "ophelia"
         #"himiko"
     ],
 

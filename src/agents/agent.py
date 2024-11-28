@@ -5,9 +5,7 @@ import json
 from javascript import require, On, Once, AsyncTask
 
 # Relative
-from ..models import model_manager
-from . import memory_controller
-from . import action_manager
+from . import memory_controller, action_manager, prompters
 from .library import skills, world
 from .commands import actions
 from ..utils.wrappers import RunAsync
@@ -36,8 +34,8 @@ class Agent():
             self.action_manager = action_manager.ActionManager(self) 
             # Start model
             self.api = profile["api"]
-            new_model = model_manager.find_model(api=profile["api"], model=profile["model"])
-            model_args = model_manager.get_model_args(**profile)
+            new_model = prompters.find_model(api=profile["api"], model=profile["model"])
+            model_args = prompters.get_model_args(**profile)
             model_args["commands"] = self.action_manager.action_list
             self.model = new_model(**model_args)
             print(f'[{self.name}] Loaded new client ({self.api}) with the model ({self.model.model})')

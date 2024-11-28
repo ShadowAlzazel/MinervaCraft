@@ -13,7 +13,7 @@ async def go_to_player(
     max_distance: float=32.0,
     closeness: float=3):
     # Get player
-    player = bot.players[player_name]
+    player = bot.players[player_name.lower()]
     if not player:
         return False
     if not player.entity:
@@ -27,7 +27,7 @@ async def go_to_player(
     # Start movement
     move = pathfinder.Movements(bot)
     bot.pathfinder.setMovements(move)
-    bot.pathfinder.setGoal(pathfinder.goals.GoalNear(pos.x, pos.y, pos.z, 0.5))
+    bot.pathfinder.setGoal(pathfinder.goals.GoalNear(pos.x, pos.y, pos.z, flaot(closeness)))
     
     
 async def follow_player(
