@@ -40,11 +40,12 @@ class Agent():
             model_args = model_manager.get_model_args(**profile)
             model_args["commands"] = self.action_manager.action_list
             self.model = new_model(**model_args)
+            print(f'[{self.name}] Loaded new client ({self.api}) with the model ({self.model.model})')
             # Create memory controller
             self.memory = memory_controller.MemoryController(self) 
             # Create new model api from profile
             # Success
-            print(f'Initialized Agent Model: [{self.name}] using: [{profile["model"]}]')
+            print(f'Initialized agent: [{self.name}]')
         # Error
         except Exception as error:
             print(f'Failed to initialize agent: {error}')
@@ -63,6 +64,11 @@ class Agent():
         print(f'{self.name} has logged on to Minecraft!')
 
 
+    # Method to access new information
+    # TODO
+    # request from INTERNET
+
+
     # Prompt
     @RunAsync
     async def prompt_chat(self, user: str, message: str):
@@ -71,16 +77,17 @@ class Agent():
         if content:
             self.bot.chat(content)
         # TEMP
+        # TODO
         # CREATE MAIN CHECKER FOR TOOL COOLS LATER
         if response.tool_calls:
             tool_call = response.tool_calls[0]
-            #tool_obj = json.loads(tool_call.function)
             func_name = tool_call.function.name
-            fkwargs = json.loads(tool_call.function.arguments)
+            arguments = tool_call.function.arguments
+            print(f'{self.name} called function {func_name}')
+            print(f'Args: {arguments}')
+            fkwargs = self.action_manager.convert_args(arguments)
             await self.action_manager.call_action(func_name, **fkwargs)
-        # TODO
-        # request from INTERNET
-        
+
         
     # Run this method LAST
     async def run(self):

@@ -39,9 +39,9 @@ async def agent_task(agent: Agent):
 
     
 async def runner() -> None:
-    print("Getting Profiles")
+    print("Getting Profiles...")
     profiles = get_profiles()
-    print(f'Loading these profiles ${profiles}')
+    print(f'Fetched agent profiles.')
     # Init all agents
     agents: list[Agent] = [Agent(**a) for a in profiles]
     # Start a task for each agent

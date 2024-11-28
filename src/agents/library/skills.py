@@ -22,7 +22,7 @@ async def go_to_player(
     bot_pos = bot.entity.position
     pos = player.entity.position
     distance = player.entity.position.distanceTo(bot_pos)
-    if distance > max_distance:
+    if distance > float(max_distance):
         return False
     # Start movement
     move = pathfinder.Movements(bot)
@@ -44,12 +44,12 @@ async def follow_player(
     bot_pos = bot.entity.position
     pos = player.entity.position
     distance = player.entity.position.distanceTo(bot_pos)
-    if distance > max_distance:
+    if distance > float(max_distance):
         return False
     # Start follow
     move = pathfinder.Movements(bot)
     bot.pathfinder.setMovements(move)
-    goal = pathfinder.goals.GoalFollow(player.entity, closeness)
+    goal = pathfinder.goals.GoalFollow(player.entity, float(closeness))
     bot.pathfinder.setGoal(goal, True)    
     
     
