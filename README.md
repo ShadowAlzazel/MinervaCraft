@@ -1,5 +1,7 @@
 # MinervaCraft
-Inspired by Mindcraft but for Python
+Inspired by Mindcraft https://github.com/kolbytn/mindcraft but for Python
+Thank you 
+
 
 To get started run:
 

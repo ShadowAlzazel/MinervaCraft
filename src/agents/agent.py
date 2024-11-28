@@ -4,14 +4,14 @@ import json
 
 from javascript import require, On, Once, AsyncTask
 
-# Relative
+# Abs
+from src.utils import mcdata as mc
+from src.utils.wrappers import RunAsync
+# Rel
 from . import memory_controller, action_manager, prompters
 from .library import skills, world
 from .commands import actions
-from ..utils.wrappers import RunAsync
 
-mineflayer = require('mineflayer')
-pathfinder = require('mineflayer-pathfinder')
 
 class Agent():
 
@@ -51,7 +51,7 @@ class Agent():
 
     # Start Bot in Minecraft
     def start_bot(self, **kwargs):
-        bot = mineflayer.createBot({
+        bot = mc.mineflayer.createBot({
             "host": kwargs["host"],
             "port": kwargs["port"],
             "auth": kwargs["port"],
@@ -59,6 +59,13 @@ class Agent():
             "username": self.name
         })
         self.bot = bot
+        # Plugins
+        self.bot.loadPlugin(mc.pathfinder.pathfinder)
+        self.bot.loadPlugin(mc.pvp.plugin)
+        self.bot.loadPlugin(mc.collect_block.plugin)
+        #self.bot.loadPlugin(mc.auto_eat.plugin)
+        #self.bot.loadPlugin(mc.armor_manager.plugin)
+        # Logging In
         print(f'{self.name} has logged on to Minecraft!')
 
 
@@ -92,10 +99,7 @@ class Agent():
         bot = self.bot
         # Loading instructions
         await self.model.send_request(self.model.instructions, "system")
-        
-        # Plugins
-        bot.loadPlugin(pathfinder.pathfinder)
-        
+     
         # Basic Chat Handler
         @On(bot, "chat")
         def handle(this, username: str, message: str, *args):
@@ -106,6 +110,7 @@ class Agent():
             if message[0] == "/":
                 return
             
+            player = bot.players[username]
             print(f'{username} said: {message}')
             match message:
                 case "Hello":
@@ -114,6 +119,12 @@ class Agent():
                     skills.go_to_player(bot, username, 20.0)
                 case "follow" | "Follow":
                     skills.follow_player(bot, username, 20.0)
+                case "blocks":
+                    world.get_nearest_blocks(bot, ["grass_block"])
+                case "mine":
+                    skills.collect_blocks(bot, "grass_block")
+                case "fight":
+                    bot.pvp.attack(player.entity)
                 case "near":
                     nearby = world.get_nearby_entities(bot, entity_types=["animal"])
                     print(nearby)

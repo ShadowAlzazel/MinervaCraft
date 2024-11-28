@@ -1,5 +1,5 @@
 SETTINGS = {
-    "mineflayer_args": {
+    "start_args": {
         "version": "1.21.1", # The minecraft version
         "host": "127.0.0.1", # or "localhost", "your.ip.address.here"
         "port": 55916,

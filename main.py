@@ -7,13 +7,9 @@ from javascript import require, On, Once
 
 # Main 
 from settings import SETTINGS
-mineflayer = require('mineflayer')
-pathfinder = require('mineflayer-pathfinder')
-
-# Modules
+from src.utils import mcdata
 from src.agents.agent import Agent
 from src.process import AgentProcess
-
 
 def get_profiles() -> list[dict]:
     default = "profiles/default.json"
@@ -37,17 +33,13 @@ async def runner() -> None:
     print("Getting Profiles...")
     profiles = get_profiles()
     print(f'Fetched agent profiles.')
-    # Init all agents
+    # Init all agents and processes
     agents: list[Agent] = [Agent(**a) for a in profiles]
     processes: list[AgentProcess] = [AgentProcess(a) for a in agents]
     # Start a task for each agent
-    #loop = asyncio.new_event_loop()
-    #for agent in agents:
-    #    loop.create_task(agent_task(agent))
-    #loop.run_forever()
     async with asyncio.TaskGroup() as task_group:
         for process in processes:
-            process.start_bot(**SETTINGS["mineflayer_args"])
+            process.start_bot(**SETTINGS["start_args"])
             task_group.create_task(process.agent_task())
     
     

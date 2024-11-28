@@ -173,6 +173,9 @@ cython_debug/
 bots/**/
 keys.json
 
+# Minecraft Data from https://github.com/misode/mcmeta
+data/
+
 # Super secret AGI
 himiko.py
 himiko.json
