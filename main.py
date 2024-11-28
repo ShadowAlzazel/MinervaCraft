@@ -2,6 +2,7 @@ import sys
 import os 
 import json
 import asyncio
+import multiprocessing
 
 from javascript import require, On, Once
 
@@ -38,7 +39,7 @@ def get_profiles() -> list[dict]:
             profiles.append(obj)
     return profiles
 
-    
+"""   
 async def runner() -> None:
     print("Getting Profiles...")
     profiles = get_profiles()
@@ -49,9 +50,8 @@ async def runner() -> None:
     # Start a task for each agent
     async with asyncio.TaskGroup() as task_group:
         for process in processes:
-            process.start_bot(**SETTINGS["start_args"])
-            task_group.create_task(process.agent_task())
-    
+            task_group.create_task(process.agent_task(**SETTINGS["start_args"]))
+  
     
 def main():
     try:
@@ -59,6 +59,33 @@ def main():
     except KeyboardInterrupt:
         print("Terminating...")
         return
+"""  
+
+def run_task(process: AgentProcess):
+    asyncio.run(process.agent_task())
+
+
+def runner() -> None:
+    print("Getting Profiles...")
+    profiles = get_profiles()
+    start_args = SETTINGS["start_args"]
+    print(f'Fetched agent profiles.')
+    # Init all agents and processes
+    agents: list[Agent] = [Agent(**a) for a in profiles]
+    processes: list[AgentProcess] = [AgentProcess(a, **start_args) for a in agents]
+    # Start a thread for each process agent
+    for process in processes:
+        name = process.agent.name
+        new_process = multiprocessing.Process(target=run_task(process), name=f'{name}-Thread')
+        new_process.start()
+
+def main():
+    try:
+        runner()
+    except KeyboardInterrupt:
+        print("Terminating...")
+        return
+
 
 # Run
 if __name__ == "__main__":

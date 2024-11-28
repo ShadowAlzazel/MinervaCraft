@@ -130,8 +130,10 @@ async def collect_blocks(
         nearest_blocks = [x for x in nearest_blocks if x not in ignore]
     # Max can collect constrained by amount and avilable
     collected = 0
+    atempts = 0
     avilable = min(amount, len(nearest_blocks))
-    while collected < avilable:
+    # Maybe create a for loop with attempts?
+    while atempts < avilable:
         # Movement
         movements = mf.pathfinder.Movements(bot)
         movements.dontMineUnderFallingBlock = False
@@ -144,9 +146,9 @@ async def collect_blocks(
         # Tool
         block = safe_to_break[0]
         nearest_blocks.remove(block)
-        print(f'Block: {block}')
+        #print(f'Block: {block}')
         item_id = bot.heldItem 
-        print(f'Item: {bot.tool.itemInHand()}')
+        #print(f'Item: {bot.tool.itemInHand()}')
         bot.tool.equipForBlock(block, {"requireHarvest": True})
         
         #bot.equip(item, 'hand')
@@ -162,14 +164,17 @@ async def collect_blocks(
         #    # DO A CHECK FOR ALL TYPES
         #    continue    
         try:
+            print("Mining Block...")
             bot.collectBlock.collect(block)
             collected += 1
         except Exception as error:
             print(f'Error while collecting block: {error}')
             return False
         
+        atempts += 1
         # Bot interrupt action
         # Cerate action current 
+    return True
     
     
 async def attack_nearest_entity(
@@ -187,8 +192,9 @@ async def attack_player(
     bot,
     player_name: str,
     max_distance: float=5.0):
+    max_distance = float(max_distance)
     # Maybe add berserk setting for perma-aggro?
-    player = bot.players[username]
+    player = bot.players[player_name]
     if not player:
         return False
     entity = player.entity

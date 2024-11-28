@@ -96,11 +96,9 @@ class Agent():
     # Run this method LAST
     async def run(self):
         bot = self.bot
-        # Logging In
-        print(f'{self.name} has logged on to Minecraft!')
         # Loading instructions
         await self.model.send_request(self.model.instructions, "system")
-     
+        print(f'Agent Fully Operational!')
         # Basic Chat Handler
         @On(bot, "chat")
         def handle(this, username: str, message: str, *args):

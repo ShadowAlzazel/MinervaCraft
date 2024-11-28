@@ -1,4 +1,5 @@
 import asyncio
+import math
 
 from src.utils import mf_data as mf
 
@@ -91,15 +92,17 @@ def get_nearest_blocks(
     })
     blocks = []
     # Process each position to get the nearest block
+    bot_position = bot.entity.position
     for position in positions:
         block = bot.blockAt(position)
-        distance_to_bot = position.distanceTo(bot.entity.position)
+        distance_to_bot = position.distanceTo(bot_position)
         # Store the block and its distance to the bot
         blocks.append({'block': block, 'distance': distance_to_bot})
     
     # Sort the blocks by their distance to the bot
     blocks.sort(key=lambda entry: entry['distance'])
-    # Return only the blocks (without their distances)
-    return [block['block'] for block in blocks]
+    # Return only the first sqrt(amount) blocks (without their distances)
+    amount_root = int(math.sqrt(count))
+    return [b['block'] for b in blocks[:10]]
 
 
