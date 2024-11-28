@@ -4,16 +4,14 @@ import json
 
 from javascript import require, On, Once, AsyncTask
 
-# Relative
-from ..models import model_manager
-from . import memory_controller
-from . import action_manager
+# Abs
+from src.utils import mcdata as mc
+from src.utils.wrappers import RunAsync
+# Rel
+from . import memory_controller, action_manager, prompters
 from .library import skills, world
 from .commands import actions
-from ..utils.wrappers import RunAsync
 
-mineflayer = require('mineflayer')
-pathfinder = require('mineflayer-pathfinder')
 
 class Agent():
 
@@ -36,23 +34,24 @@ class Agent():
             self.action_manager = action_manager.ActionManager(self) 
             # Start model
             self.api = profile["api"]
-            new_model = model_manager.find_model(api=profile["api"], model=profile["model"])
-            model_args = model_manager.get_model_args(**profile)
+            new_model = prompters.find_model(api=profile["api"], model=profile["model"])
+            model_args = prompters.get_model_args(**profile)
             model_args["commands"] = self.action_manager.action_list
             self.model = new_model(**model_args)
+            print(f'[{self.name}] Loaded new client ({self.api}) with the model ({self.model.model})')
             # Create memory controller
             self.memory = memory_controller.MemoryController(self) 
             # Create new model api from profile
             # Success
-            print(f'Initialized Agent Model: [{self.name}] using: [{profile["model"]}]')
+            print(f'Initialized agent: [{self.name}]')
         # Error
         except Exception as error:
             print(f'Failed to initialize agent: {error}')
             
 
     # Start Bot in Minecraft
-    def start(self, **kwargs):
-        bot = mineflayer.createBot({
+    def start_bot(self, **kwargs):
+        bot = mc.mineflayer.createBot({
             "host": kwargs["host"],
             "port": kwargs["port"],
             "auth": kwargs["port"],
@@ -60,7 +59,19 @@ class Agent():
             "username": self.name
         })
         self.bot = bot
+        # Plugins
+        self.bot.loadPlugin(mc.pathfinder.pathfinder)
+        self.bot.loadPlugin(mc.pvp.plugin)
+        self.bot.loadPlugin(mc.collect_block.plugin)
+        #self.bot.loadPlugin(mc.auto_eat.plugin)
+        #self.bot.loadPlugin(mc.armor_manager.plugin)
+        # Logging In
         print(f'{self.name} has logged on to Minecraft!')
+
+
+    # Method to access new information
+    # TODO
+    # request from INTERNET
 
 
     # Prompt
@@ -71,26 +82,24 @@ class Agent():
         if content:
             self.bot.chat(content)
         # TEMP
+        # TODO
         # CREATE MAIN CHECKER FOR TOOL COOLS LATER
         if response.tool_calls:
             tool_call = response.tool_calls[0]
-            #tool_obj = json.loads(tool_call.function)
             func_name = tool_call.function.name
-            fkwargs = json.loads(tool_call.function.arguments)
+            arguments = tool_call.function.arguments
+            print(f'{self.name} called function {func_name}')
+            print(f'Args: {arguments}')
+            fkwargs = self.action_manager.convert_args(arguments)
             await self.action_manager.call_action(func_name, **fkwargs)
-        # TODO
-        # request from INTERNET
-        
+
         
     # Run this method LAST
     async def run(self):
         bot = self.bot
         # Loading instructions
         await self.model.send_request(self.model.instructions, "system")
-        
-        # Plugins
-        bot.loadPlugin(pathfinder.pathfinder)
-        
+     
         # Basic Chat Handler
         @On(bot, "chat")
         def handle(this, username: str, message: str, *args):
@@ -101,6 +110,7 @@ class Agent():
             if message[0] == "/":
                 return
             
+            player = bot.players[username]
             print(f'{username} said: {message}')
             match message:
                 case "Hello":
@@ -109,6 +119,12 @@ class Agent():
                     skills.go_to_player(bot, username, 20.0)
                 case "follow" | "Follow":
                     skills.follow_player(bot, username, 20.0)
+                case "blocks":
+                    world.get_nearest_blocks(bot, ["grass_block"])
+                case "mine":
+                    skills.collect_blocks(bot, "grass_block")
+                case "fight":
+                    bot.pvp.attack(player.entity)
                 case "near":
                     nearby = world.get_nearby_entities(bot, entity_types=["animal"])
                     print(nearby)

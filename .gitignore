@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# VScode
+.vscode
+.vscode/
+
 # C extensions
 *.so
 
@@ -168,6 +172,9 @@ cython_debug/
 # Bot related 
 bots/**/
 keys.json
+
+# Minecraft Data from https://github.com/misode/mcmeta
+data/
 
 # Super secret AGI
 himiko.py
