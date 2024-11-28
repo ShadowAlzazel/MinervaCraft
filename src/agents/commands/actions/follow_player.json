@@ -14,7 +14,7 @@
       },
       "closeness": {
         "type": "number",
-        "description": "How close to stay to the player."
+        "description": "How close to stay to the player. Defaults to 3."
       }
     },
     "required": [

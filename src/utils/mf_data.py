@@ -27,27 +27,27 @@ Vec3 = require("vec3").Vec3
 Item = prismarine_items(MC_VERSION)
 
 # Methods
-def get_item_id(item_name):
+def get_item_id(item_name: str):
     """Get the item ID from the item name."""
     if item_name in mcdata.itemsByName:
         return mcdata.itemsByName[item_name].id
     return None
 
-def get_item_name(item_id):
+def get_item_name(item_id: int):
     """Get the item name from the item ID."""
     if item_id in mcdata.items:
         return mcdata.items[item_id].name
     return None
 
 
-def get_block_name(block_id):
+def get_block_name(block_id: int):
     """Get the block name from the block ID."""
     if block_id in mcdata.blocks:
         return mcdata.blocks[block_id].name
     return None
 
 
-def get_block_id(block_name):
+def get_block_id(block_name: str):
     """Get the block ID from the block name."""
     if block_name in mcdata.blocksByName:
         return mcdata.blocksByName[block_name].id

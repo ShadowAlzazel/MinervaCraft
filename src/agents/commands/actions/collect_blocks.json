@@ -1,0 +1,27 @@
+{
+  "name": "collect_blocks",
+  "description": "Collects blocks of a type from the nearby surroundings.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "block_types": {
+        "type": "string",
+        "description": "The specific block_types to collect, also know as block_name."
+      },
+      "amount": {
+        "type": "number",
+        "description": "How many blocks of the type to collect. Defaults to 5."
+      },
+      "ignore": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "An array of strings of blocks to ignore. Defaults to None."
+      }
+    },
+    "required": [
+      "block_types"
+    ]
+  }
+}

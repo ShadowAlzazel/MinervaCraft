@@ -46,7 +46,7 @@ class Agent():
             print(f'Initialized agent: [{self.name}]')
         # Error
         except Exception as error:
-            print(f'Failed to initialize agent: {error}')
+            print(f'Failed to initialize agent {profile["name"]}: {error}')
             
 
     # Start Bot in Minecraft
@@ -66,9 +66,7 @@ class Agent():
         self.bot.loadPlugin(mf.tool_plugin.plugin)
         #self.bot.loadPlugin(mf.auto_eat.plugin)
         #self.bot.loadPlugin(mf.armor_manager.plugin)
-        # Logging In
-        print(f'{self.name} has logged on to Minecraft!')
-
+        
 
     # Method to access new information
     # TODO
@@ -98,6 +96,8 @@ class Agent():
     # Run this method LAST
     async def run(self):
         bot = self.bot
+        # Logging In
+        print(f'{self.name} has logged on to Minecraft!')
         # Loading instructions
         await self.model.send_request(self.model.instructions, "system")
      
@@ -117,17 +117,18 @@ class Agent():
                 case "Hello":
                     bot.chat("Hello World!")
                 case "come" | "Come":
+                    #self.action_manager.call_wrapped_action(username, 20.0)
                     skills.go_to_player(bot, username, 20.0)
                 case "follow" | "Follow":
                     skills.follow_player(bot, username, 20.0)
                 case "blocks":
-                    world.get_nearest_blocks(bot, ["grass_block"])
+                    world.get_nearest_blocks(bot, ["stone"])
                 case "mine":
-                    skills.collect_blocks(bot, "grass_block")
+                    skills.collect_blocks(bot, "stone")
                 case "equip":
-                    skills.equip_item(bot, "diamond_shovel")
+                    asyncio.run(skills.equip_item(bot, "diamond_pickaxe"))
                 case "fight":
-                    bot.pvp.attack(player.entity)
+                    skills.attack_player(bot, username)
                 case "near":
                     nearby = world.get_nearby_entities(bot, entity_types=["animal"])
                     print(nearby)

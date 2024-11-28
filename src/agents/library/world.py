@@ -57,7 +57,7 @@ def get_nearest_blocks(
     bot,
     block_names: list[str],
     distance: int=16,
-    count: int=10000,
+    count: int=1000,
     ignore: list[str]=None):
     """
         Get a list of the nearest blocks of the given types.
