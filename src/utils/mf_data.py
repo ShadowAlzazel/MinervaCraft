@@ -17,7 +17,7 @@ armor_manager = require('mineflayer-armor-manager')
 tool_plugin = require('mineflayer-tool')
 
 
-MC_VERSION = SETTINGS["start_args"]["version"]
+MC_VERSION = SETTINGS["minecraft"]["version"]
 mcdata = minecraft_data(MC_VERSION)
 
 # This is for mineflayer-data 

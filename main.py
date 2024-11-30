@@ -61,25 +61,37 @@ def main():
         return
 """  
 
-def run_task(process: AgentProcess):
-    asyncio.run(process.agent_task())
-
+#def run_task(process: AgentProcess):
+#    asyncio.run(process.agent_task())
+def run_task(**profile) -> None:
+    agent: Agent = Agent(**profile)
+    settings = SETTINGS["minecraft"]
+    process: AgentProcess = AgentProcess(agent, **settings) 
+    #asyncio.run(process.agent_task())
+    process.agent_task()
 
 def runner() -> None:
     print("Getting Profiles...")
     profiles = get_profiles()
-    start_args = SETTINGS["start_args"]
     print(f'Fetched agent profiles.')
+    #start_args = SETTINGS["start_args"]
     # Init all agents and processes
-    agents: list[Agent] = [Agent(**a) for a in profiles]
-    processes: list[AgentProcess] = [AgentProcess(a, **start_args) for a in agents]
+    #agents: list[Agent] = [Agent(**a) for a in profiles]
+    #processes: list[AgentProcess] = [AgentProcess(Agent(**a), **start_args) for a in profiles]
     # Start a thread for each process agent
-    for process in processes:
-        name = process.agent.name
-        new_process = multiprocessing.Process(target=run_task(process), name=f'{name}-Thread')
-        new_process.start()
+    #for process in processes:
+    #    name = process.agent.name
+    #    new_process = multiprocessing.Process(target=run_task(process), name=f'{name}-Thread')
+    #    new_process.start()
+    print(f'Starting Processes...')
+    for profile in profiles:
+        name = profile["name"]
+        #new_process = multiprocessing.Process(target=run_task(**profile), name=f'{name}-Thread')
+        #new_process.start()
+        run_task(**profile)
+    
 
-def main():
+def main() -> None:
     try:
         runner()
     except KeyboardInterrupt:

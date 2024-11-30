@@ -6,7 +6,7 @@ from javascript import require, On, Once, AsyncTask
 
 # Abs
 from src.utils import mf_data as mf
-from src.utils.wrappers import RunAsync
+from src.utils.wrappers import AsyncRun, Listener
 # Rel
 from . import memory_controller, action_manager, prompters
 from .library import skills, world
@@ -74,7 +74,6 @@ class Agent():
 
 
     # Prompt
-    @RunAsync
     async def prompt_chat(self, user: str, message: str):
         response = await self.model.send_prompt(f'{user}: {message}')
         content = response.content
@@ -83,6 +82,7 @@ class Agent():
         # TEMP
         # TODO
         # CREATE MAIN CHECKER FOR TOOL COOLS LATER
+        # FIX this CALL, currently times out
         if response.tool_calls:
             tool_call = response.tool_calls[0]
             func_name = tool_call.function.name
@@ -94,21 +94,22 @@ class Agent():
 
         
     # Run this method LAST
-    async def run(self):
+    def run(self):
         bot = self.bot
         # Loading instructions
-        await self.model.send_request(self.model.instructions, "system")
+        #await self.model.send_request(self.model.instructions, "system")
         print(f'Agent Fully Operational!')
         # Basic Chat Handler
+
         @On(bot, "chat")
-        def handle(this, username: str, message: str, *args):
+        @Listener
+        async def handle(this, username: str, message: str, *args):
             # Ignore self
             if username == bot.username:
                 return
             # Ignore commands
             if message[0] == "/":
                 return
-            
             player = bot.players[username]
             print(f'{username} said: {message}')
             match message:
@@ -122,7 +123,7 @@ class Agent():
                 case "blocks":
                     world.get_nearest_blocks(bot, ["stone"])
                 case "mine":
-                    skills.collect_blocks(bot, "stone")
+                    skills.collect_blocks(bot, "oak_log")
                 case "equip":
                     asyncio.run(skills.equip_item(bot, "diamond_pickaxe"))
                 case "fight":
@@ -131,15 +132,13 @@ class Agent():
                     nearby = world.get_nearby_entities(bot, entity_types=["animal"])
                     print(nearby)
                 case _:
-                    self.prompt_chat(username, message)
+                    await self.prompt_chat(username, message)
                     pass
         
         # On Spawn
-        @On(bot, "spawn")
+        @Once(bot, "spawn")
         def spawn(this):
             nonlocal self
-            self.request_response("system", "You have logged into the server!", "system")
+            #self.request_response("system", "You have logged into the server!", "system")
             print(f'The Agent {self.name} has Spawned!')
             bot.chat("Hi! I have arrived.")
-
-        

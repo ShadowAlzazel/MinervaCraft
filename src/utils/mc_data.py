@@ -4,6 +4,6 @@ import json
 
 from settings import SETTINGS
 
-MC_VERSION = SETTINGS["start_args"]["version"]
+MC_VERSION = SETTINGS["minecraft"]["version"]
 MC_DATA_ROOT = "data/minecraft"
 

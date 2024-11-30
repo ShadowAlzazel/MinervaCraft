@@ -12,9 +12,9 @@ class AgentProcess:
         self.agent = agent
         self.settings = settings
     
-    async def agent_task(self):
+    def agent_task(self):
         # Logging In
         self.agent.start_bot(**self.settings)
         print(f'{self.agent.name} has logged on to Minecraft!')
         # Run
-        await self.agent.run()
+        self.agent.run()

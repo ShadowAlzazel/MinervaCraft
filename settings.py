@@ -1,5 +1,5 @@
 SETTINGS = {
-    "start_args": {
+    "minecraft": {
         "version": "1.21.1", # The minecraft version
         "host": "127.0.0.1", # or "localhost", "your.ip.address.here"
         "port": 55916,
@@ -7,12 +7,13 @@ SETTINGS = {
     },
 
     "profiles": [
-        #"minerva",
+        "minerva",
         #"freya",
         "ophelia"
         #"himiko"
     ],
 
     "load_memory": False, # load memory from previous session
-    "language": "en"
+    "language": "en",
+    "skills_on": True, # Whether to have actions and skills be called
 }
