@@ -7,7 +7,7 @@ from javascript import require, On, Once, AsyncTask
 from settings import SETTINGS
 
 minecraft_data = require('minecraft-data')
-mineflayer = require('mineflayer', "latest")
+mineflayer = require('mineflayer')
 prismarine_items = require('prismarine-item')
 pathfinder = require('mineflayer-pathfinder')
 pvp = require('mineflayer-pvp')

@@ -6,21 +6,25 @@ import multiprocessing
 
 from javascript import require, On, Once
 
-require('minecraft-data')
-require('mineflayer', "latest")
-require('prismarine-item')
-require('mineflayer-pathfinder')
-require('mineflayer-pvp')
+#print("Installing Node Packages...")
 require('mineflayer-collectblock')
-require('mineflayer-auto-eat')
-require('mineflayer-armor-manager')
-require('mineflayer-tool')
+require('mineflayer-pvp')
+require('mineflayer')
+#require('minecraft-data')
+#require('prismarine-item')
+#require('mineflayer-pathfinder')
+#
+#require('mineflayer-auto-eat')
+#require('mineflayer-armor-manager')
+#require('mineflayer-tool')
 
 # Main 
 from settings import SETTINGS
 from src.utils import mf_data
 from src.agents.agent import Agent
 from src.process import AgentProcess
+
+RUNNING_AGENTS: list[str] = []
 
 def get_profiles() -> list[dict]:
     default = "profiles/default.json"
@@ -61,14 +65,15 @@ def main():
         return
 """  
 
-#def run_task(process: AgentProcess):
-#    asyncio.run(process.agent_task())
+
+
 def run_task(**profile) -> None:
     agent: Agent = Agent(**profile)
     settings = SETTINGS["minecraft"]
+    RUNNING_AGENTS.append(profile["name"])
     process: AgentProcess = AgentProcess(agent, **settings) 
-    #asyncio.run(process.agent_task())
     process.agent_task()
+
 
 def runner() -> None:
     print("Getting Profiles...")
@@ -79,16 +84,12 @@ def runner() -> None:
     #agents: list[Agent] = [Agent(**a) for a in profiles]
     #processes: list[AgentProcess] = [AgentProcess(Agent(**a), **start_args) for a in profiles]
     # Start a thread for each process agent
-    #for process in processes:
-    #    name = process.agent.name
-    #    new_process = multiprocessing.Process(target=run_task(process), name=f'{name}-Thread')
-    #    new_process.start()
     print(f'Starting Processes...')
     for profile in profiles:
         name = profile["name"]
-        #new_process = multiprocessing.Process(target=run_task(**profile), name=f'{name}-Thread')
-        #new_process.start()
-        run_task(**profile)
+        new_process = multiprocessing.Process(target=run_task(**profile), name=f'{name}-Thread')
+        new_process.start()
+        #run_task(**profile)
     
 
 def main() -> None:
