@@ -2,11 +2,11 @@ import asyncio
 import os 
 import json
 
-from javascript import require, On, Once, AsyncTask
+from javascript import On, Once, AsyncTask, start, stop, abort
 
 # Abs
 from src.utils import mf_data as mf
-from src.utils.wrappers import Listener
+from src.utils.wrappers import Listener, AsyncHandler
 # Rel
 from . import memory_controller, action_manager, prompters
 from .library import skills, world
@@ -33,8 +33,9 @@ class Agent():
                     last_profile = json.loads(f.read())   
             # Actions
             self.action_manager = action_manager.ActionManager(self) 
-            # Start model
+            # Start model and api
             self.api = profile["api"]
+            # Create new model api from profile
             new_model = prompters.find_model(api=profile["api"], model=profile["model"])
             model_args = prompters.get_model_args(**profile)
             model_args["commands"] = self.action_manager.action_list
@@ -42,7 +43,8 @@ class Agent():
             print(f'[{self.name}] Loaded new client ({self.api}) with the model ({self.model.model})')
             # Create memory controller
             self.memory = memory_controller.MemoryController(self) 
-            # Create new model api from profile
+            # Async 
+        
             # Success
             print(f'Initialized agent: [{self.name}]')
         # Error
@@ -51,7 +53,7 @@ class Agent():
             
 
     # Start Bot in Minecraft
-    def start_bot(self, **kwargs):
+    def init_bot(self, **kwargs):
         bot = mf.mineflayer.createBot({
             "username": self.username,
             
@@ -94,7 +96,34 @@ class Agent():
             fkwargs = self.action_manager.convert_args(arguments)
             await self.action_manager.call_action(func_name, **fkwargs)
 
-        
+
+
+    async def chat_handler(self, username: str, message: str, *args):
+        bot = self.bot
+        match message:
+            case "Hello":
+                bot.chat("Hello World!")
+            case "come" | "Come":
+                #self.action_manager.call_wrapped_action(username, 20.0)
+                await skills.go_to_player(bot, username, 20.0)
+            case "follow" | "Follow":
+                await skills.follow_player(bot, username, 20.0)
+            case "blocks":
+                world.get_nearest_blocks(bot, ["stone"])
+            case "mine":
+                await skills.collect_blocks(bot, "oak_log")
+            case "equip":
+                await skills.equip_item(bot, "diamond_pickaxe")
+            case "fight":
+                await skills.attack_player(bot, username)
+            case "near":
+                nearby = world.get_nearby_entities(bot, entity_types=["animal"])
+                print(nearby)
+            case _:
+                await self.prompt_chat(username, message)
+                pass
+    
+
     # Run this method LAST
     def run(self):
         bot = self.bot
@@ -102,10 +131,11 @@ class Agent():
         #await self.model.send_request(self.model.instructions, "system")
         print(f'Agent Event Loop Started')
         # Basic Chat Handler
-
+        
         @On(bot, "chat")
         @Listener
         async def handle(this, username: str, message: str, *args):
+            nonlocal self
             # Ignore self
             if username == bot.username:
                 return
@@ -114,28 +144,8 @@ class Agent():
                 return
             player = bot.players[username]
             print(f'{username} said: {message}')
-            match message:
-                case "Hello":
-                    bot.chat("Hello World!")
-                case "come" | "Come":
-                    #self.action_manager.call_wrapped_action(username, 20.0)
-                    skills.go_to_player(bot, username, 20.0)
-                case "follow" | "Follow":
-                    skills.follow_player(bot, username, 20.0)
-                case "blocks":
-                    world.get_nearest_blocks(bot, ["stone"])
-                case "mine":
-                    skills.collect_blocks(bot, "oak_log")
-                case "equip":
-                    asyncio.run(skills.equip_item(bot, "diamond_pickaxe"))
-                case "fight":
-                    skills.attack_player(bot, username)
-                case "near":
-                    nearby = world.get_nearby_entities(bot, entity_types=["animal"])
-                    print(nearby)
-                case _:
-                    await self.prompt_chat(username, message)
-                    pass
+            await self.chat_handler(username, message, *args)
+            
         
         # On Spawn
         @Once(bot, "spawn")

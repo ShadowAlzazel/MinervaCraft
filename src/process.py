@@ -12,9 +12,9 @@ class AgentProcess:
         self.agent = agent
         self.settings = settings
     
-    def agent_task(self):
+    async def start(self):
         # Logging In
-        self.agent.start_bot(**self.settings)
+        self.agent.init_bot(**self.settings)
         print(f'{self.agent.name} started bot {self.agent.name} using mineflayer!')
         # Run
         self.agent.run()
