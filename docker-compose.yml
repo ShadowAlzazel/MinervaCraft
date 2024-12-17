@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  minerva-craft:
+    image: minerva-craft:latest
+    pull_policy: never
+    container_name: minerva-craft
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    ports:
+      - 8000:8000
+
+  viaproxy: #use this service to connect to an unsupported minecraft server versions. more info: ./services/viaproxy/README.md
+    image: ghcr.io/viaversion/viaproxy:latest
+    volumes:
+      - ./services/viaproxy:/app/run
+    ports:
+      - "25568:25568"
+    profiles:
+      - viaproxy

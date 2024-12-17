@@ -17,18 +17,10 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
 
 # Copy and install Python dependencies
 COPY requirements.txt . 
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the application source code
-COPY ./src ./src
-COPY ./profiles ./profiles
-COPY main.py . 
-COPY keys.json . 
-COPY settings.py .
+RUN pip install -r requirements.txt
 
 # Run the builder for node modules
 COPY builder.py .
-RUN python -m javascript --install mineflayer
 RUN python -m javascript --install mineflayer
 RUN python -m javascript --install minecraft-data
 RUN python -m javascript --install prismarine-item
@@ -40,12 +32,18 @@ RUN python -m javascript --install mineflayer-armor-manager
 RUN python -m javascript --install mineflayer-tool
 RUN python builder.py
 
+# Copy the application source code
+COPY ./src ./src
+COPY ./profiles ./profiles
+COPY main.py . 
+COPY keys.json . 
+COPY settings.py .
 
 # Stage 2: Create the runtime image
-#FROM python:3.12-slim AS runner
+FROM python:3.12-slim AS runner
 
-#WORKDIR /app
-#COPY --from=builder /app /app
+WORKDIR /app
+COPY --from=builder /app /app
 
 EXPOSE 8000
 

@@ -15,6 +15,6 @@ class AgentProcess:
     def agent_task(self):
         # Logging In
         self.agent.start_bot(**self.settings)
-        print(f'{self.agent.name} has logged on to Minecraft!')
+        print(f'{self.agent.name} started bot {self.agent.name} using mineflayer!')
         # Run
         self.agent.run()

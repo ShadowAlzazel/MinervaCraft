@@ -1,7 +1,7 @@
 import asyncio
 
 from javascript import require, On, Once
-from src.utils.wrappers import AsyncRun
+#from src.utils.wrappers import AsyncRun
 from src.utils import mf_data as mf
 from . import world
 

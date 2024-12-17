@@ -6,7 +6,7 @@ from javascript import require, On, Once, AsyncTask
 
 # Abs
 from src.utils import mf_data as mf
-from src.utils.wrappers import AsyncRun, Listener
+from src.utils.wrappers import Listener
 # Rel
 from . import memory_controller, action_manager, prompters
 from .library import skills, world
@@ -20,6 +20,7 @@ class Agent():
         try:
             # Start
             self.name = profile["name"]
+            self.username = profile["username"] # The username of the microsoft account 
             # Create bot dir 
             root = f'bots/{self.name}'
             if not os.path.exists(root):
@@ -52,11 +53,12 @@ class Agent():
     # Start Bot in Minecraft
     def start_bot(self, **kwargs):
         bot = mf.mineflayer.createBot({
+            "username": self.username,
+            
             "host": kwargs["host"],
             "port": kwargs["port"],
-            "auth": kwargs["port"],
-            "version": kwargs["version"],
-            "username": self.name
+            "auth": kwargs["auth"],
+            "version": kwargs["version"]
         })
         self.bot = bot
         # Plugins
@@ -98,7 +100,7 @@ class Agent():
         bot = self.bot
         # Loading instructions
         #await self.model.send_request(self.model.instructions, "system")
-        print(f'Agent Fully Operational!')
+        print(f'Agent Event Loop Started')
         # Basic Chat Handler
 
         @On(bot, "chat")
