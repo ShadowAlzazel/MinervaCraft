@@ -14,35 +14,23 @@ class AgentProcess:
         self.settings = settings
         # Events
         self.agent.process = self
-        self._event_queue: asyncio.Queue = asyncio.Queue()
     
-
-    # Background task to process events
-    async def event_processor(self):
-        print("Started Event Processor Queue")
-        while True:
-            print("Waiting for work")
-            func, args, kwargs = await self._event_queue.get()
-            print(f"Got work: {func}, starting work")
-            await func(*args, **kwargs)
-            print("Work Done")
-            self._event_queue.task_done() 
-             
-    
-    # Add event to queue        
-    def add_event(self, func, *args, **kwargs):
-        print(self._event_queue.qsize)
-        #loop = asyncio.get_running_loop()
-        #asyncio.run_coroutine_threadsafe(self._event_queue.put((event_name, args, kwargs)), loop)
-        self._event_queue.put_nowait((func, args, kwargs))
-        print(f"Adding func {func} to event queue")
-        #self._event_queue.put((func, args, kwargs))
-        
-    
-    async def start_process(self) -> None:
-        # Logging In
+    # Start the bot and conenct using mineflayer
+    async def run_bot(self) -> None:
+        # Setting up bot
         self.agent.init_bot(**self.settings)
         print(f'{self.agent.name} started bot {self.agent.name} using mineflayer!')
-        # Run
+        # Run the main loop
         await self.agent.run()
         
+    # Main Entry point for runner 
+    async def run(self) -> None:
+        # Logging In
+        try:
+            await self.run_bot()
+        except Exception as error:
+            self.agent.stop_agent()
+            print(f'Agent Error: {error} - Restarting')
+            asyncio.sleep(2) # Wait a little
+            await self.run_bot()
+            

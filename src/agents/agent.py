@@ -24,7 +24,8 @@ class Agent():
             self.process = None
             # For Async Events
             self._running = True
-            self.event_queue = asyncio.Queue()
+            self._event_queue = asyncio.Queue()
+            self._events_task = None
             # Create bot dir 
             root = f'bots/{self.name}'
             if not os.path.exists(root):
@@ -72,8 +73,8 @@ class Agent():
         self.bot.loadPlugin(mf.pvp.plugin)
         self.bot.loadPlugin(mf.collect_block.plugin)
         self.bot.loadPlugin(mf.tool_plugin.plugin)
-        #self.bot.loadPlugin(mf.auto_eat.plugin)
-        #self.bot.loadPlugin(mf.armor_manager.plugin)
+        self.bot.loadPlugin(mf.auto_eat.loader)
+        self.bot.loadPlugin(mf.armor_manager)
     
     # Create aMethod to access new information
     # TODO -> request from INTERNET information like wiki or tutorials
@@ -125,6 +126,15 @@ class Agent():
   
     # Handle Messages (ignore self, commands)
     async def chat_handler(self, username: str, message: str, *args):
+        # Ignore console messages 
+        console_messages = [
+            "Set own game mode to",
+            "Set the time to",
+            "Set the difficulty to",
+            "Teleported ",
+            "Set the weather to",
+            "Gamerule "
+        ]
         # Ignore messages from self
         if username == self.bot.username:
             return
@@ -132,7 +142,6 @@ class Agent():
         if message.startswith("/"):
             return
         # Ensure the player exists
-        print(f'{username} said: {message}')
         if username in self.bot.players:
             player = self.bot.players[username]
             await self.process_chat(username, message, *args)
@@ -142,39 +151,70 @@ class Agent():
 
     async def handle_events(self):
         while self._running:
-            print(f'Queue: {self.event_queue.qsize()}')
-            queue_empty = self.event_queue.qsize() <= 0
+            #print(f'Queue: {self._event_queue.qsize()}')
+            queue_empty = self._event_queue.qsize() <= 0
             if not queue_empty:
-                print("Fetching Event...")
-                event = await self.event_queue.get()  # Wait for an event from the queue
+                print("Fetching New Event...")
+                event = await self._event_queue.get()  # Wait for an event from the queue
                 # Get the next event from the queue
                 username, message, args = event
                 print("Handling Event")
                 await self.chat_handler(username, message, *args)
-                self.event_queue.task_done()
+                self._event_queue.task_done()
             else:
                 await asyncio.sleep(0.5)
 
-    # Run the bot
-    async def run(self):
-        bot = self.bot
-        print(f'Agent Event Loop Started')
-        # Start the event handler loop
-        #loop = asyncio.get_running_loop()
-        #loop.run_forever()
-        event_handler = asyncio.create_task(self.handle_events())
 
+
+    async def event_handlers(self):
+        bot = self.bot
         # On Chat
         @On(bot, "chat")
         def chat(this, username: str, message: str, *args):
             nonlocal self  # Ensure self is accessible
             # Create a task for the async function
-            self.event_queue.put_nowait((username, message, args))
+            print(f'{username} said: {message}')
+            self._event_queue.put_nowait((username, message, args))
         
-
         # On Spawn
         @Once(bot, "spawn")
         def spawn(this):
             nonlocal self
             print(f'The Agent {self.name} has Spawned!')
-            bot.chat("Hi! I have arrived.")
+            #bot.chat("Hi! I have arrived.")
+            
+        # On Idle
+        @On(bot, "idle")
+        def idle(this):
+            nonlocal self 
+            bot.pathfinder.stop()
+            print("Idling")
+            
+        # On bot end/ kill
+        @On(bot, "end") 
+        def end(this, reason):
+            print(f'Terminating Bot, Reason: {reason}')   
+            
+        # On Error
+        @On(bot, "error")
+        def bot_error(this, error):
+            print(f'Error Event: {error}')     
+
+
+
+    def stop_agent(self) -> None:
+        self._running = False
+        # Empty Queue
+        self.bot
+
+
+    # Run the bot
+    async def run(self):
+        self._running = True
+        bot = self.bot
+        print(f'Agent Event Loop Started')
+        # Start the event handler loop
+        events_task = asyncio.create_task(self.handle_events())
+        self._events_task = events_task
+        await self.event_handlers()
+        

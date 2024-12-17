@@ -43,7 +43,7 @@ def get_profiles() -> list[dict]:
             profiles.append(obj)
     return profiles
 
-
+"""
 def thread_task(**profile) -> None:
     agent: Agent = Agent(**profile)
     settings = SETTINGS["minecraft"]
@@ -59,7 +59,7 @@ def thread_runner() -> None:
         # Start a thread for each process agent
         new_process = multiprocessing.Process(target=thread_task(**profile), name=f'{name}-Thread')
         new_process.start()
-  
+"""  
   
   
 
@@ -74,12 +74,12 @@ def runner() -> None:
     # Start a task for each agent
     process = processes[0]
     loop = asyncio.new_event_loop()
-    loop.create_task(process.start_process())
+    loop.create_task(process.run())
     loop.run_forever()
     #async with asyncio.TaskGroup() as tg:
     #    for process in processes:
     #        print(f'Started task for {process.agent.name}')
-    #        tg.create_task(process.start_process())
+    #        tg.create_task(process.process_runner())
     #print("Started All Process for agents")
  
     
