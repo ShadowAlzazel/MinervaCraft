@@ -1,8 +1,8 @@
 import asyncio
 
 from javascript import require, On, Once
-from src.utils.wrappers import RunAsync
-from src.utils import mcdata as mc
+#from src.utils.wrappers import AsyncRun
+from src.utils import mf_data as mf
 from . import world
 
 
@@ -36,9 +36,9 @@ async def go_to_player(
     if distance > float(max_distance):
         return False
     # Start movement
-    move = mc.pathfinder.Movements(bot)
+    move = mf.pathfinder.Movements(bot)
     bot.pathfinder.setMovements(move)
-    bot.pathfinder.setGoal(mc.pathfinder.goals.GoalNear(pos.x, pos.y, pos.z, flaot(closeness)))
+    bot.pathfinder.setGoal(mf.pathfinder.goals.GoalNear(pos.x, pos.y, pos.z, flaot(closeness)))
     
     
 async def follow_player(
@@ -72,27 +72,47 @@ async def follow_player(
     if distance > float(max_distance):
         return False
     # Start follow
-    move = mc.pathfinder.Movements(bot)
+    move = mf.pathfinder.Movements(bot)
     bot.pathfinder.setMovements(move)
-    goal = mc.pathfinder.goals.GoalFollow(player.entity, float(closeness))
+    goal = mf.pathfinder.goals.GoalFollow(player.entity, float(closeness))
     bot.pathfinder.setGoal(goal, True)    
     
 
-async def equip_tool(
+async def equip_item(
     bot,
-    
-    material: str,
+    item_name: str,
+    equipment_slot: str="hand",
 ):
-    pass
+    # Can not find empty
+    if item_name == "air":
+        return False
+    inventory = bot.inventory.slots
+    item = None
+    item_name = item_name.replace(" ", "_")
+    # Check for item_name first
+    for slot in inventory:
+        if slot and slot.name == item_name:
+            item = slot
+            break
+    if not item:
+        return False 
+    # Then check for CustomName Component TODO!
+    
+    # Assure it equips
+    if not equipment_slot:
+        where_to_equip = "hand"
+    else:
+        where_to_equip = equipment_slot
+    bot.equip(item, where_to_equip)
+    
 
-
-@RunAsync
 async def collect_blocks(
     bot,
     block_types: str,
     amount: int=5,
     ignore: list[str]=None
 ):
+    amount = int(amount)
     if amount < 1:
         return False 
     
@@ -106,14 +126,16 @@ async def collect_blocks(
     # Create a main list of nearest blocks
     nearest_blocks = world.get_nearest_blocks(bot, block_names, 16)
     # Filter if ignore
-    if ignore:
+    if ignore and len(ignore) > 0:
         nearest_blocks = [x for x in nearest_blocks if x not in ignore]
     # Max can collect constrained by amount and avilable
     collected = 0
+    atempts = 0
     avilable = min(amount, len(nearest_blocks))
-    while collected < avilable:
+    # Maybe create a for loop with attempts?
+    while atempts < avilable:
         # Movement
-        movements = mc.pathfinder.Movements(bot)
+        movements = mf.pathfinder.Movements(bot)
         movements.dontMineUnderFallingBlock = False
         safe_to_break = [x for x in nearest_blocks if movements.safeToBreak(x)]
         # Create a sublist to compare
@@ -124,11 +146,11 @@ async def collect_blocks(
         # Tool
         block = safe_to_break[0]
         nearest_blocks.remove(block)
-        print(f'Block {block}')
-        #print(bot.tool)
-        bot.tool.equipForBlock(block)
+        #print(f'Block: {block}')
         item_id = bot.heldItem 
-        print(f'Item {bot.heldItem}')
+        #print(f'Item: {bot.tool.itemInHand()}')
+        bot.tool.equipForBlock(block, {"requireHarvest": True})
+        
         #bot.equip(item, 'hand')
         # Using block data find `material`
         # Then check inventory for the material
@@ -142,16 +164,19 @@ async def collect_blocks(
         #    # DO A CHECK FOR ALL TYPES
         #    continue    
         try:
+            print("Mining Block...")
             bot.collectBlock.collect(block)
             collected += 1
         except Exception as error:
             print(f'Error while collecting block: {error}')
             return False
         
+        atempts += 1
         # Bot interrupt action
         # Cerate action current 
+    return True
     
-@RunAsync
+    
 async def attack_nearest_entity(
     bot,
     entity_name: str, 
@@ -160,5 +185,25 @@ async def attack_nearest_entity(
     # Find
     nearest = get_nearby_entities(bot, [], [entity_name], max_distance)
     if not nearest: 
-        return
+        return []
     
+    
+async def attack_player(
+    bot,
+    player_name: str,
+    max_distance: float=5.0):
+    max_distance = float(max_distance)
+    # Maybe add berserk setting for perma-aggro?
+    player = bot.players[player_name]
+    if not player:
+        return False
+    entity = player.entity
+    if not entity: 
+        return False
+    # Check if player in range
+    position = bot.entity.position
+    distance = entity.position.distanceTo(position)
+    if distance > max_distance:
+        return False
+    bot.pvp.attack(entity)
+    return True

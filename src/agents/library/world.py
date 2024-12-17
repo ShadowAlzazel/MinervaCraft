@@ -1,6 +1,7 @@
 import asyncio
+import math
 
-from src.utils import mcdata as mc
+from src.utils import mf_data as mf
 
 # entity_types = ["animal, player, hostile"]
 
@@ -57,7 +58,7 @@ def get_nearest_blocks(
     bot,
     block_names: list[str],
     distance: int=16,
-    count: int=10000,
+    count: int=1000,
     ignore: list[str]=None):
     """
         Get a list of the nearest blocks of the given types.
@@ -75,14 +76,14 @@ def get_nearest_blocks(
     block_ids = []
     # If block_names is not a list, make it a list
     if block_names is None:
-        block_ids = mc.getAllBlockIds(['air'])
+        block_ids = mf.getAllBlockIds(['air'])
     else:
         # Ensure block_names is a list
         if not isinstance(block_names, list):
             block_names = [block_names]
         # Get block IDs from the block types
         for name in block_names:
-            block_ids.append(mc.get_block_id(name))
+            block_ids.append(mf.get_block_id(name))
     # Get the positions of the matching blocks
     positions = bot.findBlocks({
         'matching': block_ids,
@@ -91,15 +92,17 @@ def get_nearest_blocks(
     })
     blocks = []
     # Process each position to get the nearest block
+    bot_position = bot.entity.position
     for position in positions:
         block = bot.blockAt(position)
-        distance_to_bot = position.distanceTo(bot.entity.position)
+        distance_to_bot = position.distanceTo(bot_position)
         # Store the block and its distance to the bot
         blocks.append({'block': block, 'distance': distance_to_bot})
     
     # Sort the blocks by their distance to the bot
     blocks.sort(key=lambda entry: entry['distance'])
-    # Return only the blocks (without their distances)
-    return [block['block'] for block in blocks]
+    # Return only the first sqrt(amount) blocks (without their distances)
+    amount_root = int(math.sqrt(count))
+    return [b['block'] for b in blocks[:10]]
 
 

@@ -36,6 +36,10 @@ class GPT:
     def _create_tools(self, commands: list):
         tools = []
         for x in commands:
+            # Create Schema
+            #properties = x["parameters"]["properties"]
+            #for prop in properties.values():
+            #    
             tool_obj = {
                 "type": "function",
                 "function": x

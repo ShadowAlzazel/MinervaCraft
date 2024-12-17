@@ -1,0 +1,20 @@
+{
+  "name": "attack_player",
+  "description": "Attacks the given player if nearby.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "player_name": {
+        "type": "string",
+        "description": "The name of the player to attack."
+      },
+      "max_distance": {
+        "type": "string",
+        "description": "How far the player can be. Defaults to 20."
+      }
+    },
+    "required": [
+      "player_name"
+    ]
+  }
+}

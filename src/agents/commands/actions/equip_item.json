@@ -1,0 +1,20 @@
+{
+  "name": "equip_item",
+  "description": "Equips an item.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "item_name": {
+        "type": "string",
+        "description": "The item to equip."
+      },
+      "equipment_slot": {
+        "type": "string",
+        "description": "What slot to equip the item to. Defaults to `hand`."
+      }
+    },
+    "required": [
+      "player_name"
+    ]
+  }
+}

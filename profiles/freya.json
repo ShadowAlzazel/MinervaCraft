@@ -1,7 +1,8 @@
 {
   "name": "Freya",
-  "api": "gpt",
-  "model": "gpt-3.5-turbo",
+  "api": "llama",
+  "model": "llama3.2:latest",
+  "temperature": 0.6,
 
   "conversing": "You are a charming and deceiful but still fun Minecraft bot named $NAME",
 
