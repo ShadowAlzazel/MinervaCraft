@@ -6,7 +6,7 @@ from javascript import On, Once, AsyncTask, start, stop, abort
 
 # Abs
 from src.utils import mf_data as mf
-from src.utils.wrappers import Listener, AsyncHandler
+#from src.utils.wrappers import EventHandler
 # Rel
 from . import memory_controller, action_manager, prompters
 from .library import skills, world
@@ -21,6 +21,10 @@ class Agent():
             # Start
             self.name = profile["name"]
             self.username = profile["username"] # The username of the microsoft account 
+            self.process = None
+            # For Async Events
+            self._running = True
+            self.event_queue = asyncio.Queue()
             # Create bot dir 
             root = f'bots/{self.name}'
             if not os.path.exists(root):
@@ -44,7 +48,7 @@ class Agent():
             # Create memory controller
             self.memory = memory_controller.MemoryController(self) 
             # Async 
-        
+            self.events = []
             # Success
             print(f'Initialized agent: [{self.name}]')
         # Error
@@ -70,15 +74,12 @@ class Agent():
         self.bot.loadPlugin(mf.tool_plugin.plugin)
         #self.bot.loadPlugin(mf.auto_eat.plugin)
         #self.bot.loadPlugin(mf.armor_manager.plugin)
-        
-
-    # Method to access new information
-    # TODO
-    # request from INTERNET
-
-
+    
+    # Create aMethod to access new information
+    # TODO -> request from INTERNET information like wiki or tutorials
+    
     # Prompt
-    async def prompt_chat(self, user: str, message: str):
+    async def send_prompt(self, user: str, message: str):
         response = await self.model.send_prompt(f'{user}: {message}')
         content = response.content
         if content:
@@ -97,60 +98,83 @@ class Agent():
             await self.action_manager.call_action(func_name, **fkwargs)
 
 
-
-    async def chat_handler(self, username: str, message: str, *args):
-        bot = self.bot
+    # Process the user and message and do stuff 
+    async def process_chat(self, username: str, message: str, *args):
         match message:
             case "Hello":
-                bot.chat("Hello World!")
+                self.bot.chat("Hello World!")
             case "come" | "Come":
                 #self.action_manager.call_wrapped_action(username, 20.0)
-                await skills.go_to_player(bot, username, 20.0)
+                await skills.go_to_player(self.bot, username, 20.0)
             case "follow" | "Follow":
-                await skills.follow_player(bot, username, 20.0)
+                await skills.follow_player(self.bot, username, 20.0)
             case "blocks":
-                world.get_nearest_blocks(bot, ["stone"])
+                world.get_nearest_blocks(self.bot, ["stone"])
             case "mine":
-                await skills.collect_blocks(bot, "oak_log")
+                await skills.collect_blocks(self.bot, "oak_log")
             case "equip":
-                await skills.equip_item(bot, "diamond_pickaxe")
+                await skills.equip_item(self.bot, "diamond_pickaxe")
             case "fight":
-                await skills.attack_player(bot, username)
+                await skills.attack_player(self.bot, username)
             case "near":
-                nearby = world.get_nearby_entities(bot, entity_types=["animal"])
+                nearby = world.get_nearby_entities(self.bot, entity_types=["animal"])
                 print(nearby)
             case _:
-                await self.prompt_chat(username, message)
-                pass
-    
+                await self.send_prompt(username, message)
+  
+  
+    # Handle Messages (ignore self, commands)
+    async def chat_handler(self, username: str, message: str, *args):
+        # Ignore messages from self
+        if username == self.bot.username:
+            return
+        # Ignore commands
+        if message.startswith("/"):
+            return
+        # Ensure the player exists
+        print(f'{username} said: {message}')
+        if username in self.bot.players:
+            player = self.bot.players[username]
+            await self.process_chat(username, message, *args)
+        else:
+            print(f"Player {username} not found in bot players.")
 
-    # Run this method LAST
-    def run(self):
+
+    async def handle_events(self):
+        while self._running:
+            print(f'Queue: {self.event_queue.qsize()}')
+            queue_empty = self.event_queue.qsize() <= 0
+            if not queue_empty:
+                print("Fetching Event...")
+                event = await self.event_queue.get()  # Wait for an event from the queue
+                # Get the next event from the queue
+                username, message, args = event
+                print("Handling Event")
+                await self.chat_handler(username, message, *args)
+                self.event_queue.task_done()
+            else:
+                await asyncio.sleep(0.5)
+
+    # Run the bot
+    async def run(self):
         bot = self.bot
-        # Loading instructions
-        #await self.model.send_request(self.model.instructions, "system")
         print(f'Agent Event Loop Started')
-        # Basic Chat Handler
-        
+        # Start the event handler loop
+        #loop = asyncio.get_running_loop()
+        #loop.run_forever()
+        event_handler = asyncio.create_task(self.handle_events())
+
+        # On Chat
         @On(bot, "chat")
-        @Listener
-        async def handle(this, username: str, message: str, *args):
-            nonlocal self
-            # Ignore self
-            if username == bot.username:
-                return
-            # Ignore commands
-            if message[0] == "/":
-                return
-            player = bot.players[username]
-            print(f'{username} said: {message}')
-            await self.chat_handler(username, message, *args)
-            
+        def chat(this, username: str, message: str, *args):
+            nonlocal self  # Ensure self is accessible
+            # Create a task for the async function
+            self.event_queue.put_nowait((username, message, args))
         
+
         # On Spawn
         @Once(bot, "spawn")
         def spawn(this):
             nonlocal self
-            #self.request_response("system", "You have logged into the server!", "system")
             print(f'The Agent {self.name} has Spawned!')
             bot.chat("Hi! I have arrived.")

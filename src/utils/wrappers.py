@@ -1,68 +1,27 @@
 import asyncio
 
-from javascript import require, On, Once
-
-#async def AsyncRun(fun):
-#    async def wrapper(*args, **kwargs):
-#        task = asyncio.create_task(fun(*args, **kwargs))
-#        return await task 
-#    return await wrapper
-
-# Create task group manager
-
-#def TrackFun(fun):
-#    def wrapper(*args, **kwargs):
-#       val = fun(*args, **kwargs)
-#        print(f'The function {fun} was called!')
-#        return val 
-    
-#    return wrapper
+from javascript import On, Once, AsyncTask, start, stop, abort
 
 """
-def Listener(fun):
-    # Create a task
-    async def _task(*args, **kwargs):
-        task = asyncio.create_task(fun(*args, **kwargs))
-        return await task 
-
-    def _wrapper(*args, **kwargs):
-        asyncio.run(_task(*args, **kwargs))    
+async def Listener(func):
     
-    return _wrapper
-"""
-
-"""
-async def Listener(fun):
-    # Create a task
-    async def _task(*args, **kwargs):
-        task = asyncio.create_task(fun(*args, **kwargs))
-        return await task 
-
-    async def _wrapper(*args, **kwargs):
-        asyncio.wait(_task(*args, **kwargs))    
-    
-    return await _wrapper
-"""
-
-async def AsyncHandler(func):
-    if not asyncio.iscoroutinefunction(func):
-        raise TypeError('Listeners must be coroutines')
-    
-    async def _wrapper(*args, **kwargs):
-        asyncio.wait(_task(*args, **kwargs))    
-    
-    return await _wrapper
-
-
-def Listener(func):
-    if not asyncio.iscoroutinefunction(func):
-        raise TypeError('Listeners must be coroutines')
-    
-    async def _crt_task(*args, **kwargs):
+    async def wrapper(*args, **kwargs):
         task = asyncio.create_task(func(*args, **kwargs))
-        return await task
-        
-    def _wrapper(*args, **kwargs):
-        asyncio.run(_crt_task(*args, **kwargs))     
-        
-    return _wrapper
+        result = await task
+        return result
+    return await wrapper 
+
+"""
+
+"""
+def Listener(func):
+    async def wrapper(*args, **kwargs):
+        if asyncio.iscoroutinefunction(func):
+            # Await the coroutine if the function is async
+            return await func(*args, **kwargs)
+        else:
+            # Call the sync function directly
+            return func(*args, **kwargs)
+    return wrapper
+
+"""

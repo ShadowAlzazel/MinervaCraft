@@ -63,7 +63,7 @@ def thread_runner() -> None:
   
   
 
-async def runner() -> None:
+def runner() -> None:
     settings = SETTINGS["minecraft"]
     print("Getting Profiles...")
     profiles = get_profiles()
@@ -72,16 +72,22 @@ async def runner() -> None:
     agents: list[Agent] = [Agent(**a) for a in profiles]
     processes: list[AgentProcess] = [AgentProcess(a, **settings) for a in agents]
     # Start a task for each agent
-    async with asyncio.TaskGroup() as tg:
-        for process in processes:
-            print(f'Started task for {process.agent.name}')
-            tg.create_task(process.start())
+    process = processes[0]
+    loop = asyncio.new_event_loop()
+    loop.create_task(process.start_process())
+    loop.run_forever()
+    #async with asyncio.TaskGroup() as tg:
+    #    for process in processes:
+    #        print(f'Started task for {process.agent.name}')
+    #        tg.create_task(process.start_process())
+    #print("Started All Process for agents")
  
     
 # Main
 def main() -> None:
     try:
-        asyncio.run(runner())
+        #asyncio.run(runner())
+        runner()
     except KeyboardInterrupt:
         print("Terminating...")
         return
